@@ -1,27 +1,15 @@
 # Bottler Simulator 💧
 
-A casual factory management game where players:
-- Start with machines & workers
-- Upgrade levels to 10
-- Sell to virtual customers
-- Earn money & buy coins via PayPal
-- Save progress locally or sign in with Apple
+A casual factory management game built with React, TailwindCSS, and Vite.
+Supports real-time upgrades, currency detection, and monetization.
 
-## 🌍 Features
-
-- Multi-currency support (KWD, AED, USD, GBP, EUR)
-- Trial vs Full version logic
-- PayPal Coin Packs
-- Built with React + TailwindCSS
-- Deployable on web or App Store
-
-## 🚀 Run Locally
+## 🧪 Local Dev
 
 ```bash
 npm install
 npm run dev
 ```
 
-## 📦 Deploy on Vercel
+## 🚀 Deploy
 
-Push to GitHub and connect via [vercel.com](https://vercel.com/)
+Deploy to [https://vercel.com](https://vercel.com) or wrap for App Store.
