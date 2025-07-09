@@ -1,236 +1,213 @@
 import { useState, useEffect } from 'react';
 
 const initialGameState = {
+  // Start with a small, struggling factory
   production: {
     lines: [
       {
         id: 1,
-        name: 'Premium Line A',
-        type: 'High-Speed Bottling',
-        level: 3,
+        name: 'Basic Line A',
+        type: 'Manual Bottling',
+        level: 1,
         isActive: true,
-        currentOutput: 2500,
-        maxOutput: 3000,
-        efficiency: 85,
-        speed: 7,
-        maintenanceStatus: 'good',
-        nextMaintenance: 48
+        currentOutput: 500, // Much lower starting output
+        maxOutput: 800,
+        efficiency: 65, // Lower starting efficiency
+        speed: 3, // Slower initial speed
+        maintenanceStatus: 'warning', // Needs attention
+        nextMaintenance: 12,
+        operatingCost: 150 // Cost per hour to run
       },
       {
         id: 2,
-        name: 'Standard Line B',
-        type: 'Standard Bottling',
-        level: 2,
-        isActive: true,
-        currentOutput: 1800,
-        maxOutput: 2000,
-        efficiency: 90,
-        speed: 6,
-        maintenanceStatus: 'good',
-        nextMaintenance: 72
-      },
-      {
-        id: 3,
-        name: 'Eco Line C',
-        type: 'Eco-Friendly Bottling',
+        name: 'Basic Line B',
+        type: 'Manual Bottling',
         level: 1,
-        isActive: false,
+        isActive: false, // Start with only one line active
         currentOutput: 0,
-        maxOutput: 1500,
+        maxOutput: 800,
         efficiency: 0,
-        speed: 5,
-        maintenanceStatus: 'warning',
-        nextMaintenance: 24
+        speed: 3,
+        maintenanceStatus: 'critical', // Broken down
+        nextMaintenance: 0,
+        operatingCost: 150
       }
     ],
-    totalCapacity: 6500,
-    dailyProduction: 45000,
-    totalBottlesProduced: 1250000,
-    averageEfficiency: 88,
-    uptime: 94
+    totalCapacity: 1600,
+    dailyProduction: 8000, // Much lower starting production
+    totalBottlesProduced: 15000, // Start with some history
+    averageEfficiency: 65,
+    uptime: 78, // Lower uptime due to maintenance issues
+    productionRate: 0 // Bottles per minute
   },
   
+  // Limited starting resources - forces immediate decisions
   resources: {
     water: {
-      name: 'Purified Water',
-      current: 85000,
-      capacity: 100000,
+      name: 'Municipal Water',
+      current: 15000, // Only 1.25 days supply
+      capacity: 25000,
       unit: 'Liters',
       dailyUsage: 12000,
-      cost: 0.002,
+      cost: 0.003, // Higher cost for municipal water
       ordered: 0,
-      daysLeft: 7
+      daysLeft: 1.25,
+      supplier: 'City Water Department',
+      quality: 'Basic'
     },
     bottles: {
-      name: 'Plastic Bottles',
-      current: 45000,
-      capacity: 75000,
+      name: 'Basic Plastic Bottles',
+      current: 5000, // Very low stock
+      capacity: 15000,
       unit: 'Units',
-      dailyUsage: 15000,
-      cost: 0.05,
-      ordered: 25000,
-      daysLeft: 3
+      dailyUsage: 8000,
+      cost: 0.08, // Higher cost for small orders
+      ordered: 0,
+      daysLeft: 0.6,
+      supplier: 'Local Plastics Co.',
+      quality: 'Standard'
     },
     caps: {
-      name: 'Bottle Caps',
-      current: 48000,
-      capacity: 80000,
+      name: 'Standard Caps',
+      current: 6000,
+      capacity: 20000,
       unit: 'Units',
-      dailyUsage: 15000,
-      cost: 0.01,
+      dailyUsage: 8000,
+      cost: 0.015,
       ordered: 0,
-      daysLeft: 3
+      daysLeft: 0.75,
+      supplier: 'Cap Solutions Ltd.',
+      quality: 'Basic'
     },
     labels: {
-      name: 'Product Labels',
-      current: 52000,
-      capacity: 70000,
+      name: 'Basic Labels',
+      current: 7000,
+      capacity: 18000,
       unit: 'Units',
-      dailyUsage: 15000,
-      cost: 0.02,
+      dailyUsage: 8000,
+      cost: 0.025,
       ordered: 0,
-      daysLeft: 3
+      daysLeft: 0.9,
+      supplier: 'Print & Label Co.',
+      quality: 'Standard'
     },
     filters: {
-      name: 'Water Filters',
-      current: 25,
-      capacity: 50,
+      name: 'Basic Water Filters',
+      current: 2, // Critical shortage
+      capacity: 10,
       unit: 'Units',
-      dailyUsage: 2,
-      cost: 45,
-      ordered: 10,
-      daysLeft: 12
+      dailyUsage: 0.5,
+      cost: 85,
+      ordered: 0,
+      daysLeft: 4,
+      supplier: 'Filter Tech Inc.',
+      quality: 'Basic'
     },
-    totalValue: 125000
+    totalValue: 25000
   },
 
+  // Small market presence - room to grow
   market: {
-    marketShare: 15.2,
-    totalRevenue: 125000,
-    unitsSold: 45000,
-    averagePrice: 2.78,
-    competitionLevel: 'High',
+    marketShare: 2.1, // Very small starting share
+    totalRevenue: 18000, // Much lower revenue
+    unitsSold: 8000,
+    averagePrice: 2.25,
+    competitionLevel: 'Very High',
+    customerSatisfaction: 72, // Room for improvement
+    brandRecognition: 15, // Low brand awareness
     products: [
       {
-        name: 'Al Rawdatain Premium',
-        type: 'premium',
-        size: '500ml',
-        price: 3.50,
-        marketPrice: 3.25,
-        dailySales: 8500,
-        marketShare: 18,
-        demand: 85,
-        demandTrend: 5
-      },
-      {
-        name: 'Al Rawdatain Classic',
+        name: 'Al Rawdatain Basic',
         type: 'standard',
         size: '500ml',
         price: 2.25,
         marketPrice: 2.40,
-        dailySales: 25000,
-        marketShare: 22,
-        demand: 92,
-        demandTrend: 2
-      },
-      {
-        name: 'Al Rawdatain Family',
-        type: 'family',
-        size: '1.5L',
-        price: 4.75,
-        marketPrice: 4.50,
-        dailySales: 11500,
-        marketShare: 12,
-        demand: 78,
-        demandTrend: -3
+        dailySales: 8000,
+        marketShare: 2.1,
+        demand: 45, // Low demand
+        demandTrend: -2,
+        profitMargin: 0.52
       }
     ],
     trends: [
       {
-        title: 'Summer Season Boost',
-        description: 'Increased demand due to hot weather',
-        impact: 'positive',
-        change: '+15%',
-        duration: '3 months'
-      },
-      {
-        title: 'Health Consciousness',
-        description: 'Growing preference for premium water',
-        impact: 'positive',
-        change: '+8%',
-        duration: 'Ongoing'
-      },
-      {
-        title: 'Economic Pressure',
-        description: 'Consumers shifting to budget options',
+        title: 'New Competitor Entry',
+        description: 'Large corporation entered local market',
         impact: 'negative',
-        change: '-5%',
+        change: '-8%',
         duration: '6 months'
+      },
+      {
+        title: 'Quality Concerns',
+        description: 'Recent quality issues affecting reputation',
+        impact: 'negative',
+        change: '-12%',
+        duration: '3 months'
       }
     ],
     regions: [
-      { name: 'Central Region', marketShare: 18, growth: 3.2, revenue: 45000 },
-      { name: 'Northern Region', marketShare: 12, growth: -1.5, revenue: 35000 },
-      { name: 'Southern Region', marketShare: 15, growth: 5.8, revenue: 45000 }
+      { name: 'Local Area', marketShare: 2.1, growth: -1.2, revenue: 18000 }
     ]
   },
 
+  // Tight finances - realistic startup situation
   finance: {
-    cash: 485000,
-    dailyRevenue: 125000,
-    dailyExpenses: 78000,
-    netProfit: 47000,
-    cashChange: 2.3,
-    revenueChange: 5.7,
-    expenseChange: 3.2,
-    profitChange: 8.9,
+    cash: 45000, // Limited starting capital
+    dailyRevenue: 18000,
+    dailyExpenses: 16200, // Thin margins
+    netProfit: 1800, // Small profit margin
+    cashChange: -2.1, // Declining cash
+    revenueChange: -3.4,
+    expenseChange: 1.8,
+    profitChange: -15.2,
+    monthlyLoanPayment: 3500, // Existing debt
+    creditLimit: 25000, // Available credit line
     revenueBreakdown: [
-      { category: 'Premium Sales', amount: 45000, percentage: 36, color: '#3B82F6' },
-      { category: 'Standard Sales', amount: 55000, percentage: 44, color: '#10B981' },
-      { category: 'Family Sales', amount: 25000, percentage: 20, color: '#F59E0B' }
+      { category: 'Basic Water Sales', amount: 18000, percentage: 100, color: '#3B82F6' }
     ],
     expenseBreakdown: [
-      { category: 'Raw Materials', amount: 35000, percentage: 45, color: '#EF4444' },
-      { category: 'Labor', amount: 18000, percentage: 23, color: '#8B5CF6' },
-      { category: 'Utilities', amount: 12000, percentage: 15, color: '#F97316' },
-      { category: 'Maintenance', amount: 8000, percentage: 10, color: '#06B6D4' },
-      { category: 'Other', amount: 5000, percentage: 7, color: '#84CC16' }
+      { category: 'Raw Materials', amount: 8500, percentage: 52, color: '#EF4444' },
+      { category: 'Labor', amount: 3200, percentage: 20, color: '#8B5CF6' },
+      { category: 'Utilities', amount: 2100, percentage: 13, color: '#F97316' },
+      { category: 'Maintenance', amount: 1400, percentage: 9, color: '#06B6D4' },
+      { category: 'Loan Payment', amount: 1000, percentage: 6, color: '#84CC16' }
     ],
     cashFlowProjection: [
-      { date: 'Today', income: 125000, expenses: 78000, netFlow: 47000 },
-      { date: 'Tomorrow', income: 128000, expenses: 80000, netFlow: 48000 },
-      { date: 'Day 3', income: 122000, expenses: 75000, netFlow: 47000 },
-      { date: 'Day 4', income: 135000, expenses: 82000, netFlow: 53000 },
-      { date: 'Day 5', income: 130000, expenses: 79000, netFlow: 51000 },
-      { date: 'Day 6', income: 125000, expenses: 77000, netFlow: 48000 },
-      { date: 'Day 7', income: 140000, expenses: 85000, netFlow: 55000 }
+      { date: 'Today', income: 18000, expenses: 16200, netFlow: 1800 },
+      { date: 'Tomorrow', income: 17500, expenses: 16400, netFlow: 1100 },
+      { date: 'Day 3', income: 17200, expenses: 16600, netFlow: 600 },
+      { date: 'Day 4', income: 16800, expenses: 16800, netFlow: 0 },
+      { date: 'Day 5', income: 16500, expenses: 17000, netFlow: -500 },
+      { date: 'Day 6', income: 16200, expenses: 17200, netFlow: -1000 },
+      { date: 'Day 7', income: 15800, expenses: 17400, netFlow: -1600 }
     ],
     ratios: {
-      grossMargin: 62,
-      netMargin: 38,
-      roi: 15.2,
-      costPerUnit: 1.73,
-      revenuePerUnit: 2.78,
-      breakEven: 28500,
-      revenueGrowth: 5.7,
-      profitGrowth: 8.9,
-      marketGrowth: 3.2
+      grossMargin: 47,
+      netMargin: 10,
+      roi: 4.2,
+      costPerUnit: 2.03,
+      revenuePerUnit: 2.25,
+      breakEven: 7200,
+      revenueGrowth: -3.4,
+      profitGrowth: -15.2,
+      marketGrowth: 1.8
     }
   },
 
+  // Quality issues that need addressing
   quality: {
-    overallScore: 94,
-    waterPurity: 99.8,
-    bottleIntegrity: 98.5,
-    labelAccuracy: 99.2,
-    fillLevel: 99.1,
-    capSeal: 99.6,
-    contamination: 0.05,
+    overallScore: 76, // Poor starting quality
+    waterPurity: 96.2, // Below premium standards
+    bottleIntegrity: 94.1,
+    labelAccuracy: 89.5, // Poor labeling
+    fillLevel: 91.8,
+    capSeal: 93.2,
+    contamination: 0.8, // High contamination
     recentTests: [
       {
         testType: 'Microbiological Analysis',
         batchNumber: 'B2024-0115-001',
-        result: 'pass',
+        result: 'warning',
         timestamp: '2024-01-15 14:30'
       },
       {
@@ -242,207 +219,320 @@ const initialGameState = {
       {
         testType: 'Physical Properties',
         batchNumber: 'B2024-0114-003',
-        result: 'warning',
+        result: 'fail',
         timestamp: '2024-01-14 16:45'
       }
     ],
     certifications: [
-      { name: 'ISO 22000', status: 'active', expiryDate: '2024-12-31' },
-      { name: 'HACCP', status: 'active', expiryDate: '2024-08-15' },
-      { name: 'FDA Approval', status: 'expiring', expiryDate: '2024-03-20' },
-      { name: 'Halal Certification', status: 'active', expiryDate: '2024-11-10' }
+      { name: 'Basic Health Permit', status: 'active', expiryDate: '2024-06-30' },
+      { name: 'Local Business License', status: 'active', expiryDate: '2024-12-31' }
     ],
     improvementActions: [
       {
-        title: 'Upgrade Filtration System',
-        description: 'Install advanced reverse osmosis filters',
-        cost: 25000,
-        impact: 2
+        title: 'Install Basic Filtration',
+        description: 'Add basic water filtration system',
+        cost: 8500,
+        impact: 3,
+        timeToImplement: '2 weeks'
       },
       {
-        title: 'Automated Quality Testing',
-        description: 'Implement real-time quality monitoring',
-        cost: 45000,
-        impact: 5
+        title: 'Staff Training',
+        description: 'Basic quality control training',
+        cost: 2500,
+        impact: 2,
+        timeToImplement: '1 week'
       },
       {
-        title: 'Staff Training Program',
-        description: 'Enhanced quality control training',
-        cost: 8000,
-        impact: 3
+        title: 'Equipment Calibration',
+        description: 'Calibrate filling and capping machines',
+        cost: 1200,
+        impact: 4,
+        timeToImplement: '3 days'
       }
     ],
     trends: {
-      defectRate: 0.8,
-      customerComplaints: 12,
-      testsPassed: 97.2
+      defectRate: 4.2, // High defect rate
+      customerComplaints: 28,
+      testsPassed: 76.8
     }
   },
 
+  // Limited upgrade options - must earn better equipment
   upgrades: {
-    purchased: [
-      {
-        id: 'auto-fill-1',
-        name: 'Automated Filling System',
-        category: 'automation',
-        description: 'Reduces manual intervention in the filling process',
-        cost: 25000,
-        benefits: ['+15% production speed', '-10% labor costs', '+5% accuracy']
-      }
-    ],
+    purchased: [], // Start with no upgrades
     available: [
       {
-        id: 'speed-boost-1',
-        name: 'High-Speed Conveyor',
-        category: 'production',
-        description: 'Increases bottle movement speed throughout the production line',
-        cost: 35000,
-        benefits: ['+20% production speed', '+10% throughput', 'Reduced bottlenecks'],
-        requirements: 'Production Level 2'
+        id: 'basic-maintenance',
+        name: 'Basic Maintenance Kit',
+        category: 'maintenance',
+        description: 'Essential tools and parts for basic equipment maintenance',
+        cost: 3500,
+        benefits: ['+10% uptime', '-20% maintenance costs', 'Prevent breakdowns'],
+        requirements: null,
+        timeToInstall: '1 day'
       },
       {
-        id: 'energy-efficient-1',
-        name: 'Energy Efficient Motors',
-        category: 'efficiency',
-        description: 'Reduces energy consumption while maintaining performance',
-        cost: 28000,
-        benefits: ['-25% energy costs', '+5% efficiency', 'Environmental benefits'],
-        requirements: null
-      },
-      {
-        id: 'quality-sensor-1',
-        name: 'Advanced Quality Sensors',
+        id: 'water-testing-kit',
+        name: 'Water Testing Equipment',
         category: 'quality',
-        description: 'Real-time quality monitoring and automatic rejection system',
-        cost: 42000,
-        benefits: ['+15% quality score', '-50% defect rate', 'Automated quality control'],
-        requirements: 'Quality Level 3'
+        description: 'Basic equipment for testing water quality',
+        cost: 2800,
+        benefits: ['+5% quality score', 'Early contamination detection', 'Compliance monitoring'],
+        requirements: null,
+        timeToInstall: '2 days'
       },
       {
-        id: 'predictive-maintenance',
-        name: 'Predictive Maintenance System',
-        category: 'automation',
-        description: 'AI-powered system to predict equipment failures',
-        cost: 55000,
-        benefits: ['+20% uptime', '-30% maintenance costs', 'Prevent breakdowns'],
-        requirements: 'Automation Level 2'
+        id: 'backup-generator',
+        name: 'Backup Power Generator',
+        category: 'reliability',
+        description: 'Prevents production loss during power outages',
+        cost: 12000,
+        benefits: ['+15% uptime', 'Prevent spoilage', 'Continuous operation'],
+        requirements: null,
+        timeToInstall: '1 week'
       },
       {
-        id: 'water-recycling',
-        name: 'Water Recycling System',
+        id: 'inventory-system',
+        name: 'Basic Inventory Tracking',
         category: 'efficiency',
-        description: 'Recycles and purifies water used in cleaning processes',
-        cost: 38000,
-        benefits: ['-40% water costs', 'Environmental compliance', '+10% sustainability score'],
-        requirements: null
-      },
-      {
-        id: 'smart-inventory',
-        name: 'Smart Inventory Management',
-        category: 'automation',
-        description: 'Automated inventory tracking and reordering system',
-        cost: 22000,
-        benefits: ['-20% inventory costs', 'Automatic reordering', '+15% efficiency'],
-        requirements: null
+        description: 'Simple system to track raw materials and finished goods',
+        cost: 4500,
+        benefits: ['-15% waste', 'Better planning', 'Cost tracking'],
+        requirements: null,
+        timeToInstall: '3 days'
       }
     ],
     research: [
       {
-        name: 'Nano-Filtration Technology',
-        description: 'Next-generation water purification system',
-        researchCost: 75000,
-        timeToUnlock: '45 days',
-        progress: 35
-      },
-      {
-        name: 'Biodegradable Bottles',
-        description: 'Environmentally friendly bottle manufacturing',
-        researchCost: 60000,
-        timeToUnlock: '60 days',
-        progress: 20
-      },
-      {
-        name: 'AI Production Optimization',
-        description: 'Machine learning for production optimization',
-        researchCost: 85000,
+        name: 'Semi-Automated Line',
+        description: 'Upgrade to semi-automated bottling equipment',
+        researchCost: 25000,
         timeToUnlock: '90 days',
-        progress: 10
+        progress: 0,
+        requirements: 'Basic operations stable for 60 days'
+      },
+      {
+        name: 'Premium Water Source',
+        description: 'Access to premium spring water supply',
+        researchCost: 18000,
+        timeToUnlock: '45 days',
+        progress: 0,
+        requirements: 'Quality score above 85%'
       }
     ],
     totalBenefits: {
-      productionBoost: 15,
-      efficiencyBoost: 10,
-      qualityBoost: 5,
-      costReduction: 10
+      productionBoost: 0,
+      efficiencyBoost: 0,
+      qualityBoost: 0,
+      costReduction: 0
     }
+  },
+
+  // Game progression tracking
+  gameProgress: {
+    daysPassed: 0,
+    decisionsToday: 0,
+    totalDecisions: 0,
+    startTime: Date.now(),
+    lastSave: Date.now(),
+    milestones: {
+      firstProfit: false,
+      firstUpgrade: false,
+      qualityImprovement: false,
+      marketExpansion: false,
+      debtFree: false
+    },
+    challenges: [
+      {
+        id: 'cash_crisis',
+        title: 'Cash Flow Crisis',
+        description: 'Maintain positive cash flow for 7 consecutive days',
+        progress: 0,
+        target: 7,
+        reward: 5000,
+        active: true
+      },
+      {
+        id: 'quality_boost',
+        title: 'Quality Improvement',
+        description: 'Increase overall quality score to 85%',
+        progress: 76,
+        target: 85,
+        reward: 'Premium Supplier Access',
+        active: true
+      }
+    ]
   }
 };
 
 export const useGameState = () => {
   const [gameState, setGameState] = useState(initialGameState);
 
-  // Auto-save to localStorage
+  // Load saved state
   useEffect(() => {
     const savedState = localStorage.getItem('alRawdatainFactoryState');
     if (savedState) {
       try {
-        setGameState(JSON.parse(savedState));
+        const parsed = JSON.parse(savedState);
+        // Ensure new properties exist in loaded state
+        setGameState({
+          ...initialGameState,
+          ...parsed,
+          gameProgress: {
+            ...initialGameState.gameProgress,
+            ...parsed.gameProgress
+          }
+        });
       } catch (error) {
         console.error('Failed to load saved game state:', error);
       }
     }
   }, []);
 
+  // Auto-save
   useEffect(() => {
-    localStorage.setItem('alRawdatainFactoryState', JSON.stringify(gameState));
+    const saveTimer = setInterval(() => {
+      localStorage.setItem('alRawdatainFactoryState', JSON.stringify(gameState));
+    }, 30000); // Save every 30 seconds
+
+    return () => clearInterval(saveTimer);
   }, [gameState]);
 
-  // Game simulation loop
+  // Realistic game simulation - runs every minute (real time)
   useEffect(() => {
     const interval = setInterval(() => {
       setGameState(prevState => {
         const newState = { ...prevState };
         
-        // Update production based on active lines
+        // Calculate production per minute
         let totalProduction = 0;
+        let totalOperatingCost = 0;
+        
         newState.production.lines.forEach(line => {
-          if (line.isActive) {
-            const productionRate = (line.currentOutput * line.speed) / 10;
+          if (line.isActive && line.maintenanceStatus !== 'critical') {
+            // Production rate: bottles per minute
+            const baseRate = (line.currentOutput * line.efficiency / 100) / 60; // Convert hourly to per minute
+            const speedMultiplier = line.speed / 5; // Speed affects output
+            const productionRate = baseRate * speedMultiplier;
+            
             totalProduction += productionRate;
-            // Update total bottles produced
-            newState.production.totalBottlesProduced += productionRate / 12; // Approximate hourly to 5-second intervals
+            totalOperatingCost += line.operatingCost / 60; // Convert hourly cost to per minute
+            
+            // Gradual efficiency degradation without maintenance
+            if (line.nextMaintenance > 0) {
+              line.nextMaintenance -= 1/60; // Decrease by 1 minute
+              if (line.nextMaintenance <= 0) {
+                line.maintenanceStatus = 'critical';
+                line.efficiency = Math.max(30, line.efficiency - 20);
+              }
+            }
           }
         });
         
-        // Update resources consumption
-        const hourlyConsumption = totalProduction / 24;
+        newState.production.productionRate = totalProduction;
+        newState.production.totalBottlesProduced += totalProduction;
+        
+        // Update resources consumption (per minute)
+        const minutelyConsumption = totalProduction;
         Object.keys(newState.resources).forEach(resourceKey => {
           if (resourceKey !== 'totalValue') {
             const resource = newState.resources[resourceKey];
-            const consumption = resource.dailyUsage / 24 / 12; // Adjust for 5-second intervals
+            let consumption = 0;
+            
+            // Different consumption rates based on resource type
+            switch (resourceKey) {
+              case 'water':
+                consumption = minutelyConsumption * 1.5; // 1.5L per bottle
+                break;
+              case 'bottles':
+              case 'caps':
+              case 'labels':
+                consumption = minutelyConsumption; // 1:1 ratio
+                break;
+              case 'filters':
+                consumption = minutelyConsumption * 0.0001; // Filters last longer
+                break;
+            }
+            
             resource.current = Math.max(0, resource.current - consumption);
-            resource.daysLeft = resource.current / resource.dailyUsage;
+            resource.daysLeft = resource.current / (resource.dailyUsage || 1);
+            
+            // Production stops if critical resources run out
+            if ((resourceKey === 'water' || resourceKey === 'bottles' || resourceKey === 'caps') && resource.current <= 0) {
+              newState.production.lines.forEach(line => {
+                line.isActive = false;
+              });
+            }
           }
         });
         
-        // Update finance
-        const hourlyRevenue = newState.finance.dailyRevenue / 24 / 12; // Adjust for 5-second intervals
-        const hourlyExpenses = newState.finance.dailyExpenses / 24 / 12;
-        newState.finance.cash += (hourlyRevenue - hourlyExpenses);
+        // Update finances (per minute)
+        const minutelyRevenue = (newState.finance.dailyRevenue / (24 * 60)) * (totalProduction / (newState.production.dailyProduction / (24 * 60)));
+        const minutelyExpenses = (newState.finance.dailyExpenses / (24 * 60)) + (totalOperatingCost / 60);
         
-        // Update net profit
+        newState.finance.cash += (minutelyRevenue - minutelyExpenses);
         newState.finance.netProfit = newState.finance.dailyRevenue - newState.finance.dailyExpenses;
+        
+        // Update game progress
+        newState.gameProgress.daysPassed = (Date.now() - newState.gameProgress.startTime) / (1000 * 60 * 60 * 24);
+        
+        // Check for bankruptcy
+        if (newState.finance.cash < -newState.finance.creditLimit) {
+          // Game over scenario - could trigger restart or loan options
+          console.log('Bankruptcy warning!');
+        }
+        
+        // Update quality based on production conditions
+        if (totalProduction > 0) {
+          // Quality degrades with poor maintenance and resource shortages
+          const maintenanceQuality = newState.production.lines.reduce((avg, line) => {
+            const qualityImpact = line.maintenanceStatus === 'good' ? 1 : 
+                                line.maintenanceStatus === 'warning' ? 0.95 : 0.85;
+            return avg + qualityImpact;
+          }, 0) / newState.production.lines.length;
+          
+          const resourceQuality = Math.min(
+            newState.resources.water.daysLeft > 1 ? 1 : 0.9,
+            newState.resources.filters.current > 1 ? 1 : 0.85
+          );
+          
+          newState.quality.overallScore = Math.max(60, 
+            newState.quality.overallScore * 0.999 + // Gradual degradation
+            (maintenanceQuality * resourceQuality * 100) * 0.001 // Improvement factor
+          );
+        }
         
         return newState;
       });
-    }, 5000); // Update every 5 seconds for demo purposes
+    }, 60000); // Update every minute (real time)
 
     return () => clearInterval(interval);
   }, []);
 
   const updateGameState = (updater) => {
-    setGameState(updater);
+    setGameState(prevState => {
+      const newState = typeof updater === 'function' ? updater(prevState) : updater;
+      
+      // Track decisions
+      if (newState.gameProgress) {
+        newState.gameProgress.decisionsToday += 1;
+        newState.gameProgress.totalDecisions += 1;
+      }
+      
+      return newState;
+    });
   };
 
-  return { gameState, updateGameState };
+  const resetGame = () => {
+    localStorage.removeItem('alRawdatainFactoryState');
+    setGameState({
+      ...initialGameState,
+      gameProgress: {
+        ...initialGameState.gameProgress,
+        startTime: Date.now()
+      }
+    });
+  };
+
+  return { gameState, updateGameState, resetGame };
 };
