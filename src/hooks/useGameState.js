@@ -409,6 +409,8 @@ export const useGameState = () => {
           if (line.isActive) {
             const productionRate = (line.currentOutput * line.speed) / 10;
             totalProduction += productionRate;
+            // Update total bottles produced
+            newState.production.totalBottlesProduced += productionRate / 12; // Approximate hourly to 5-second intervals
           }
         });
         
@@ -417,16 +419,19 @@ export const useGameState = () => {
         Object.keys(newState.resources).forEach(resourceKey => {
           if (resourceKey !== 'totalValue') {
             const resource = newState.resources[resourceKey];
-            const consumption = resource.dailyUsage / 24;
+            const consumption = resource.dailyUsage / 24 / 12; // Adjust for 5-second intervals
             resource.current = Math.max(0, resource.current - consumption);
             resource.daysLeft = resource.current / resource.dailyUsage;
           }
         });
         
         // Update finance
-        const hourlyRevenue = newState.finance.dailyRevenue / 24;
-        const hourlyExpenses = newState.finance.dailyExpenses / 24;
+        const hourlyRevenue = newState.finance.dailyRevenue / 24 / 12; // Adjust for 5-second intervals
+        const hourlyExpenses = newState.finance.dailyExpenses / 24 / 12;
         newState.finance.cash += (hourlyRevenue - hourlyExpenses);
+        
+        // Update net profit
+        newState.finance.netProfit = newState.finance.dailyRevenue - newState.finance.dailyExpenses;
         
         return newState;
       });

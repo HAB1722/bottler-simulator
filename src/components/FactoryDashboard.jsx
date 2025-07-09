@@ -5,6 +5,9 @@ import MarketDemand from './MarketDemand';
 import FinancialOverview from './FinancialOverview';
 import QualityControl from './QualityControl';
 import UpgradeCenter from './UpgradeCenter';
+import ProgressTracker from './ProgressTracker';
+import GameStats from './GameStats';
+import NotificationSystem from './NotificationSystem';
 import { useGameState } from '../hooks/useGameState';
 
 const FactoryDashboard = () => {
@@ -41,6 +44,12 @@ const FactoryDashboard = () => {
 
   return (
     <div className="max-w-7xl mx-auto">
+      {/* Notification System */}
+      <NotificationSystem gameState={gameState} />
+
+      {/* Progress Tracker */}
+      <ProgressTracker gameState={gameState} />
+
       {/* Quick Stats Bar */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         <div className="metric-card">
@@ -91,7 +100,13 @@ const FactoryDashboard = () => {
 
       {/* Tab Content */}
       <div className="min-h-96">
-        {renderTabContent()}
+        {activeTab === 'production' && (
+          <>
+            <GameStats gameState={gameState} />
+            <ProductionLines gameState={gameState} updateGameState={updateGameState} />
+          </>
+        )}
+        {activeTab !== 'production' && renderTabContent()}
       </div>
     </div>
   );
