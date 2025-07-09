@@ -467,11 +467,18 @@ export const useGameState = () => {
         });
         
         // Update finances (per minute)
-        const minutelyRevenue = (newState.finance.dailyRevenue / (24 * 60)) * (totalProduction / (newState.production.dailyProduction / (24 * 60)));
-        const minutelyExpenses = (newState.finance.dailyExpenses / (24 * 60)) + (totalOperatingCost / 60);
+        const minutelyRevenue = ((newState.finance.dailyRevenue || 0) / (24 * 60)) * (totalProduction / ((newState.production.dailyProduction || 1) / (24 * 60)));
+        const minutelyExpenses = ((newState.finance.dailyExpenses || 0) / (24 * 60)) + (totalOperatingCost / 60);
         
-        newState.finance.cash += (minutelyRevenue - minutelyExpenses);
-        newState.finance.netProfit = newState.finance.dailyRevenue - newState.finance.dailyExpenses;
+        newState.finance.cash = (newState.finance.cash || 0) + (minutelyRevenue - minutelyExpenses);
+        newState.finance.netProfit = (newState.finance.dailyRevenue || 0) - (newState.finance.dailyExpenses || 0);
+        
+        // Ensure all financial values are numbers, not null
+        Object.keys(newState.finance).forEach(key => {
+          if (typeof newState.finance[key] === 'number' && (newState.finance[key] === null || isNaN(newState.finance[key]))) {
+            newState.finance[key] = 0;
+          }
+        });
         
         // Update game progress
         newState.gameProgress.daysPassed = (Date.now() - newState.gameProgress.startTime) / (1000 * 60 * 60 * 24);

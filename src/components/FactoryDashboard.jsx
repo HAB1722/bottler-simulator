@@ -9,6 +9,7 @@ import ProgressTracker from './ProgressTracker';
 import GameStats from './GameStats';
 import NotificationSystem from './NotificationSystem';
 import { useGameState } from '../hooks/useGameState';
+import { safeToLocaleString, safeCurrency } from '../utils/safeFormatting';
 
 const FactoryDashboard = () => {
   const { gameState, updateGameState } = useGameState();
@@ -55,13 +56,13 @@ const FactoryDashboard = () => {
         <div className="metric-card">
           <div className="text-sm text-gray-600">Daily Revenue</div>
           <div className="text-2xl font-bold text-green-600">
-            ${gameState.finance.dailyRevenue.toLocaleString()}
+            {safeCurrency(gameState.finance.dailyRevenue)}
           </div>
         </div>
         <div className="metric-card">
           <div className="text-sm text-gray-600">Bottles Produced</div>
           <div className="text-2xl font-bold text-blue-600">
-            {gameState.production.totalBottlesProduced.toLocaleString()}
+            {safeToLocaleString(gameState.production.totalBottlesProduced)}
           </div>
         </div>
         <div className="metric-card">

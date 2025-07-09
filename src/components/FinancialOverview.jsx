@@ -1,5 +1,6 @@
 import React from 'react';
 import { DollarSign, TrendingUp, TrendingDown, PieChart } from 'lucide-react';
+import { safeToLocaleString, safeCurrency } from '../utils/safeFormatting';
 
 const FinancialOverview = ({ gameState, updateGameState }) => {
   const { finance } = gameState;
@@ -10,7 +11,7 @@ const FinancialOverview = ({ gameState, updateGameState }) => {
         <div>
           <div className="text-sm text-gray-600">{title}</div>
           <div className={`text-2xl font-bold text-${color}-600`}>
-            {typeof value === 'number' ? `$${value.toLocaleString()}` : value}
+            {safeCurrency(value)}
           </div>
           {change && (
             <div className={`flex items-center text-sm mt-1 ${
@@ -81,7 +82,7 @@ const FinancialOverview = ({ gameState, updateGameState }) => {
                 <span className="text-gray-700">{item.category}</span>
               </div>
               <div className="text-right">
-                <div className="font-medium">${item.amount.toLocaleString()}</div>
+                <div className="font-medium">{safeCurrency(item.amount)}</div>
                 <div className="text-sm text-gray-600">{item.percentage}%</div>
               </div>
             </div>
@@ -103,7 +104,7 @@ const FinancialOverview = ({ gameState, updateGameState }) => {
                 <span className="text-gray-700">{item.category}</span>
               </div>
               <div className="text-right">
-                <div className="font-medium">${item.amount.toLocaleString()}</div>
+                <div className="font-medium">{safeCurrency(item.amount)}</div>
                 <div className="text-sm text-gray-600">{item.percentage}%</div>
               </div>
             </div>
@@ -124,7 +125,7 @@ const FinancialOverview = ({ gameState, updateGameState }) => {
                 <div className={`font-medium ${
                   day.netFlow > 0 ? 'text-green-600' : 'text-red-600'
                 }`}>
-                  {day.netFlow > 0 ? '+' : ''}${day.netFlow.toLocaleString()}
+                  {day.netFlow > 0 ? '+' : ''}{safeCurrency(day.netFlow)}
                 </div>
               </div>
             </div>
@@ -165,7 +166,7 @@ const FinancialOverview = ({ gameState, updateGameState }) => {
             </div>
             <div className="flex justify-between">
               <span className="text-gray-600">Break-even:</span>
-              <span className="font-medium">{finance.ratios.breakEven.toLocaleString()} units</span>
+              <span className="font-medium">{safeToLocaleString(finance.ratios.breakEven)} units</span>
             </div>
           </div>
         </div>
