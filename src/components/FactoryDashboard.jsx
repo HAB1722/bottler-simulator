@@ -5,6 +5,8 @@ import MarketDemand from './MarketDemand';
 import FinancialOverview from './FinancialOverview';
 import QualityControl from './QualityControl';
 import UpgradeCenter from './UpgradeCenter';
+import ResearchDevelopment from './ResearchDevelopment';
+import EmployeeManagement from './EmployeeManagement';
 import ProgressTracker from './ProgressTracker';
 import GameStats from './GameStats';
 import NotificationSystem from './NotificationSystem';
@@ -21,7 +23,9 @@ const FactoryDashboard = () => {
     { id: 'market', label: 'Market', icon: '📈' },
     { id: 'finance', label: 'Finance', icon: '💰' },
     { id: 'quality', label: 'Quality', icon: '✅' },
-    { id: 'upgrades', label: 'Upgrades', icon: '⚡' }
+    { id: 'upgrades', label: 'Upgrades', icon: '⚡' },
+    { id: 'research', label: 'R&D', icon: '🔬' },
+    { id: 'employees', label: 'HR', icon: '👥' }
   ];
 
   const renderTabContent = () => {
@@ -38,6 +42,10 @@ const FactoryDashboard = () => {
         return <QualityControl gameState={gameState} updateGameState={updateGameState} />;
       case 'upgrades':
         return <UpgradeCenter gameState={gameState} updateGameState={updateGameState} />;
+      case 'research':
+        return <ResearchDevelopment gameState={gameState} updateGameState={updateGameState} />;
+      case 'employees':
+        return <EmployeeManagement gameState={gameState} updateGameState={updateGameState} />;
       default:
         return <ProductionLines gameState={gameState} updateGameState={updateGameState} />;
     }

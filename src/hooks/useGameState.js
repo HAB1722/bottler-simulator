@@ -503,10 +503,63 @@ export const useGameState = () => {
         
         // Update finances (per minute)
         const minutelyRevenue = ((newState.finance.dailyRevenue || 0) / (24 * 60)) * (totalProduction / ((newState.production.dailyProduction || 1) / (24 * 60)));
-        const minutelyExpenses = ((newState.finance.dailyExpenses || 0) / (24 * 60)) + (totalOperatingCost / 60);
+        const minutelyExpenses = ((newState.finance.dailyExpenses || 0) / (24 * 60)) + (totalOperatingCost / 60) + 
+                                ((newState.employees?.totalWageCost || 0) / (30 * 24 * 60)) + // Employee wages
+                                ((newState.research?.monthlyBudget || 0) / (30 * 24 * 60)) + // R&D costs
+                                ((newState.loans?.monthlyPayments || 0) / (30 * 24 * 60)); // Loan payments
         
         newState.finance.cash = (newState.finance.cash || 0) + (minutelyRevenue - minutelyExpenses);
         newState.finance.netProfit = (newState.finance.dailyRevenue || 0) - (newState.finance.dailyExpenses || 0);
+        
+        // Update P&L statement
+        if (newState.profitLoss) {
+          newState.profitLoss.revenue.total = newState.finance.dailyRevenue || 0;
+          newState.profitLoss.expenses.labor = newState.employees?.totalWageCost || 0;
+          newState.profitLoss.expenses.research = newState.research?.monthlyBudget || 0;
+          newState.profitLoss.expenses.loanPayments = newState.loans?.monthlyPayments || 0;
+          newState.profitLoss.expenses.total = Object.values(newState.profitLoss.expenses).reduce((sum, val) => sum + (val || 0), 0);
+          newState.profitLoss.netProfit = newState.profitLoss.revenue.total - newState.profitLoss.expenses.total;
+          newState.profitLoss.margins.net = newState.profitLoss.revenue.total > 0 ? 
+            (newState.profitLoss.netProfit / newState.profitLoss.revenue.total) * 100 : 0;
+        }
+        
+        // Update research progress
+        if (newState.research?.currentProjects) {
+          newState.research.currentProjects.forEach(project => {
+            if (project.progress < 100) {
+              project.progress += (100 / (project.duration * 24 * 60)) * 30; // Progress per 30 seconds
+              if (project.progress >= 100) {
+                // Complete the project
+                project.progress = 100;
+                newState.research.completed.push(project);
+                newState.research.currentProjects = newState.research.currentProjects.filter(p => p.id !== project.id);
+                
+                // Apply research benefits
+                if (project.category === 'quality') {
+                  newState.research.technologies.benefits.qualityBonus += 5;
+                } else if (project.category === 'efficiency') {
+                  newState.research.technologies.benefits.efficiencyBonus += 10;
+                }
+              }
+            }
+          });
+        }
+        
+        // Update employee satisfaction and efficiency
+        if (newState.employees) {
+          // Gradual satisfaction changes based on working conditions
+          const satisfactionChange = (newState.finance.cash > 50000 ? 0.1 : -0.1) + 
+                                   (newState.quality.overallScore > 85 ? 0.1 : -0.05);
+          newState.employees.satisfaction = Math.max(0, Math.min(100, 
+            newState.employees.satisfaction + satisfactionChange));
+          
+          // Update department efficiency based on satisfaction
+          Object.keys(newState.employees.departments).forEach(dept => {
+            const department = newState.employees.departments[dept];
+            department.efficiency = Math.max(50, Math.min(100, 
+              department.efficiency + (newState.employees.satisfaction > 70 ? 0.1 : -0.1)));
+          });
+        }
         
         // Ensure all financial values are numbers, not null
         Object.keys(newState.finance || {}).forEach(key => {
