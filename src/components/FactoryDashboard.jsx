@@ -12,7 +12,7 @@ import { useGameState } from '../hooks/useGameState';
 import { safeToLocaleString, safeCurrency } from '../utils/safeFormatting';
 
 const FactoryDashboard = () => {
-  const { gameState, updateGameState } = useGameState();
+  const { gameState, updateGameState, lastNotifications, setLastNotifications } = useGameState();
   const [activeTab, setActiveTab] = useState('production');
 
   const tabs = [
@@ -46,7 +46,11 @@ const FactoryDashboard = () => {
   return (
     <div className="max-w-7xl mx-auto">
       {/* Notification System */}
-      <NotificationSystem gameState={gameState} />
+      <NotificationSystem 
+        gameState={gameState} 
+        lastNotifications={lastNotifications}
+        setLastNotifications={setLastNotifications}
+      />
 
       {/* Progress Tracker */}
       <ProgressTracker gameState={gameState} />

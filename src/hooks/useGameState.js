@@ -368,6 +368,9 @@ const initialGameState = {
 export const useGameState = () => {
   const [gameState, setGameState] = useState(initialGameState);
 
+  // Track last notification times to prevent spam
+  const [lastNotifications, setLastNotifications] = useState({});
+
   // Load saved state
   useEffect(() => {
     const savedState = localStorage.getItem('alRawdatainFactoryState');
@@ -378,9 +381,34 @@ export const useGameState = () => {
         setGameState({
           ...initialGameState,
           ...parsed,
+          // Ensure all nested objects exist
           gameProgress: {
             ...initialGameState.gameProgress,
-            ...parsed.gameProgress
+            ...(parsed.gameProgress || {})
+          },
+          production: {
+            ...initialGameState.production,
+            ...(parsed.production || {})
+          },
+          finance: {
+            ...initialGameState.finance,
+            ...(parsed.finance || {})
+          },
+          resources: {
+            ...initialGameState.resources,
+            ...(parsed.resources || {})
+          },
+          quality: {
+            ...initialGameState.quality,
+            ...(parsed.quality || {})
+          },
+          market: {
+            ...initialGameState.market,
+            ...(parsed.market || {})
+          },
+          upgrades: {
+            ...initialGameState.upgrades,
+            ...(parsed.upgrades || {})
           }
         });
       } catch (error) {
@@ -402,6 +430,11 @@ export const useGameState = () => {
   useEffect(() => {
     const interval = setInterval(() => {
       setGameState(prevState => {
+        // Prevent updates if state is corrupted
+        if (!prevState || !prevState.production || !prevState.finance) {
+          return prevState;
+        }
+        
         const newState = { ...prevState };
         
         // Calculate production per minute
@@ -411,19 +444,19 @@ export const useGameState = () => {
         newState.production.lines.forEach(line => {
           if (line.isActive && line.maintenanceStatus !== 'critical') {
             // Production rate: bottles per minute
-            const baseRate = (line.currentOutput * line.efficiency / 100) / 60; // Convert hourly to per minute
-            const speedMultiplier = line.speed / 5; // Speed affects output
+            const baseRate = ((line.currentOutput || 0) * (line.efficiency || 0) / 100) / 60;
+            const speedMultiplier = (line.speed || 1) / 5;
             const productionRate = baseRate * speedMultiplier;
             
             totalProduction += productionRate;
-            totalOperatingCost += line.operatingCost / 60; // Convert hourly cost to per minute
+            totalOperatingCost += (line.operatingCost || 0) / 60;
             
             // Gradual efficiency degradation without maintenance
-            if (line.nextMaintenance > 0) {
+            if ((line.nextMaintenance || 0) > 0) {
               line.nextMaintenance -= 1/60; // Decrease by 1 minute
               if (line.nextMaintenance <= 0) {
                 line.maintenanceStatus = 'critical';
-                line.efficiency = Math.max(30, line.efficiency - 20);
+                line.efficiency = Math.max(30, (line.efficiency || 0) - 20);
               }
             }
           }
@@ -434,9 +467,11 @@ export const useGameState = () => {
         
         // Update resources consumption (per minute)
         const minutelyConsumption = totalProduction;
-        Object.keys(newState.resources).forEach(resourceKey => {
+        Object.keys(newState.resources || {}).forEach(resourceKey => {
           if (resourceKey !== 'totalValue') {
             const resource = newState.resources[resourceKey];
+            if (!resource) return;
+            
             let consumption = 0;
             
             // Different consumption rates based on resource type
@@ -454,12 +489,12 @@ export const useGameState = () => {
                 break;
             }
             
-            resource.current = Math.max(0, resource.current - consumption);
-            resource.daysLeft = resource.current / (resource.dailyUsage || 1);
+            resource.current = Math.max(0, (resource.current || 0) - consumption);
+            resource.daysLeft = (resource.current || 0) / (resource.dailyUsage || 1);
             
             // Production stops if critical resources run out
-            if ((resourceKey === 'water' || resourceKey === 'bottles' || resourceKey === 'caps') && resource.current <= 0) {
-              newState.production.lines.forEach(line => {
+            if ((resourceKey === 'water' || resourceKey === 'bottles' || resourceKey === 'caps') && (resource.current || 0) <= 0) {
+              (newState.production.lines || []).forEach(line => {
                 line.isActive = false;
               });
             }
@@ -474,17 +509,19 @@ export const useGameState = () => {
         newState.finance.netProfit = (newState.finance.dailyRevenue || 0) - (newState.finance.dailyExpenses || 0);
         
         // Ensure all financial values are numbers, not null
-        Object.keys(newState.finance).forEach(key => {
-          if (typeof newState.finance[key] === 'number' && (newState.finance[key] === null || isNaN(newState.finance[key]))) {
+        Object.keys(newState.finance || {}).forEach(key => {
+          if (newState.finance[key] === null || isNaN(newState.finance[key])) {
             newState.finance[key] = 0;
           }
         });
         
         // Update game progress
-        newState.gameProgress.daysPassed = (Date.now() - newState.gameProgress.startTime) / (1000 * 60 * 60 * 24);
+        if (newState.gameProgress && newState.gameProgress.startTime) {
+          newState.gameProgress.daysPassed = (Date.now() - newState.gameProgress.startTime) / (1000 * 60 * 60 * 24);
+        }
         
         // Check for bankruptcy
-        if (newState.finance.cash < -newState.finance.creditLimit) {
+        if ((newState.finance.cash || 0) < -(newState.finance.creditLimit || 0)) {
           // Game over scenario - could trigger restart or loan options
           console.log('Bankruptcy warning!');
         }
@@ -492,36 +529,38 @@ export const useGameState = () => {
         // Update quality based on production conditions
         if (totalProduction > 0) {
           // Quality degrades with poor maintenance and resource shortages
-          const maintenanceQuality = newState.production.lines.reduce((avg, line) => {
+          const maintenanceQuality = (newState.production.lines || []).reduce((avg, line) => {
             const qualityImpact = line.maintenanceStatus === 'good' ? 1 : 
                                 line.maintenanceStatus === 'warning' ? 0.95 : 0.85;
             return avg + qualityImpact;
-          }, 0) / newState.production.lines.length;
+          }, 0) / Math.max(1, (newState.production.lines || []).length);
           
           const resourceQuality = Math.min(
-            newState.resources.water.daysLeft > 1 ? 1 : 0.9,
-            newState.resources.filters.current > 1 ? 1 : 0.85
+            (newState.resources.water?.daysLeft || 0) > 1 ? 1 : 0.9,
+            (newState.resources.filters?.current || 0) > 1 ? 1 : 0.85
           );
           
           newState.quality.overallScore = Math.max(60, 
-            newState.quality.overallScore * 0.999 + // Gradual degradation
+            (newState.quality.overallScore || 0) * 0.999 + // Gradual degradation
             (maintenanceQuality * resourceQuality * 100) * 0.001 // Improvement factor
           );
         }
         
         return newState;
       });
-    }, 60000); // Update every minute (real time)
+    }, 30000); // Update every 30 seconds for better responsiveness
 
     return () => clearInterval(interval);
   }, []);
 
   const updateGameState = (updater) => {
     setGameState(prevState => {
+      if (!prevState) return prevState;
+      
       const newState = typeof updater === 'function' ? updater(prevState) : updater;
       
       // Track decisions
-      if (newState.gameProgress) {
+      if (newState.gameProgress && typeof newState.gameProgress.decisionsToday === 'number') {
         newState.gameProgress.decisionsToday += 1;
         newState.gameProgress.totalDecisions += 1;
       }
@@ -541,5 +580,5 @@ export const useGameState = () => {
     });
   };
 
-  return { gameState, updateGameState, resetGame };
+  return { gameState, updateGameState, resetGame, lastNotifications, setLastNotifications };
 };

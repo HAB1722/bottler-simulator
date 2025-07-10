@@ -2,32 +2,40 @@ import React from 'react';
 import { Clock, Calendar, Zap, Target, AlertTriangle, TrendingDown } from 'lucide-react';
 
 const GameStats = ({ gameState }) => {
-  const { production, finance, quality, market, gameProgress } = gameState;
+  const { production, finance, quality, market, gameProgress } = gameState || {};
 
+  // Safety checks
+  if (!gameState || !production || !finance || !quality || !market || !gameProgress) {
+    return (
+      <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+        <div className="text-center text-gray-500">Loading factory data...</div>
+      </div>
+    );
+  }
   // Calculate realistic session stats
-  const playTimeMinutes = Math.floor((Date.now() - gameProgress.startTime) / (1000 * 60));
+  const playTimeMinutes = Math.floor((Date.now() - (gameProgress.startTime || Date.now())) / (1000 * 60));
   const playTimeHours = Math.floor(playTimeMinutes / 60);
   const remainingMinutes = playTimeMinutes % 60;
   const playTimeDisplay = playTimeHours > 0 ? `${playTimeHours}h ${remainingMinutes}m` : `${playTimeMinutes}m`;
 
   // Calculate survival metrics
-  const daysUntilBankruptcy = finance.cash / Math.abs(Math.min(0, finance.netProfit)) || Infinity;
-  const criticalResources = Object.entries(gameState.resources)
-    .filter(([key, resource]) => key !== 'totalValue' && resource.daysLeft < 1)
+  const daysUntilBankruptcy = (finance.cash || 0) / Math.abs(Math.min(0, finance.netProfit || 0)) || Infinity;
+  const criticalResources = Object.entries(gameState.resources || {})
+    .filter(([key, resource]) => key !== 'totalValue' && resource && (resource.daysLeft || 0) < 1)
     .length;
 
   const sessionStats = {
     playTime: playTimeDisplay,
-    decisionsToday: gameProgress.decisionsToday,
-    survivalDays: Math.floor(gameProgress.daysPassed),
-    criticalIssues: criticalResources + (finance.cash < 10000 ? 1 : 0) + (quality.overallScore < 80 ? 1 : 0)
+    decisionsToday: gameProgress.decisionsToday || 0,
+    survivalDays: Math.floor(gameProgress.daysPassed || 0),
+    criticalIssues: criticalResources + ((finance.cash || 0) < 10000 ? 1 : 0) + ((quality.overallScore || 0) < 80 ? 1 : 0)
   };
 
   // Realistic milestones based on current situation
   const milestones = [
     {
       title: 'Survival Milestone',
-      current: Math.floor(gameProgress.daysPassed),
+      current: Math.floor(gameProgress.daysPassed || 0),
       next: 30,
       unit: 'days',
       icon: Target,
@@ -36,20 +44,20 @@ const GameStats = ({ gameState }) => {
     },
     {
       title: 'Cash Stability',
-      current: finance.cash,
+      current: finance.cash || 0,
       next: 100000,
       unit: 'cash',
       icon: Zap,
-      color: finance.cash > 50000 ? 'green' : 'red',
+      color: (finance.cash || 0) > 50000 ? 'green' : 'red',
       description: 'Build cash reserves'
     },
     {
       title: 'Quality Standard',
-      current: quality.overallScore,
+      current: quality.overallScore || 0,
       next: 90,
       unit: '%',
       icon: TrendingDown,
-      color: quality.overallScore > 85 ? 'green' : 'yellow',
+      color: (quality.overallScore || 0) > 85 ? 'green' : 'yellow',
       description: 'Achieve quality excellence'
     }
   ];
@@ -98,28 +106,28 @@ const GameStats = ({ gameState }) => {
         <div className="text-center">
           <Target className="mx-auto text-purple-500 mb-2" size={24} />
           <div className={`text-lg font-bold ${getStatusColor(production.productionRate * 60, {good: 800, warning: 400})}`}>
-            {Math.round(production.productionRate * 60)}
+            {Math.round((production.productionRate || 0) * 60)}
           </div>
           <div className="text-sm text-gray-600">Bottles/Hour</div>
         </div>
       </div>
 
       {/* Critical Alerts */}
-      {(finance.cash < 20000 || criticalResources > 0 || quality.overallScore < 80) && (
+      {((finance.cash || 0) < 20000 || criticalResources > 0 || (quality.overallScore || 0) < 80) && (
         <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
           <h4 className="font-medium text-red-800 mb-2 flex items-center">
             <AlertTriangle size={16} className="mr-2" />
             Immediate Action Required
           </h4>
           <div className="space-y-1 text-sm text-red-700">
-            {finance.cash < 20000 && (
-              <div>• Cash critically low: ${finance.cash.toLocaleString()} remaining</div>
+            {(finance.cash || 0) < 20000 && (
+              <div>• Cash critically low: ${(finance.cash || 0).toLocaleString()} remaining</div>
             )}
             {criticalResources > 0 && (
               <div>• {criticalResources} resource(s) running out within 24 hours</div>
             )}
-            {quality.overallScore < 80 && (
-              <div>• Quality score below acceptable level: {quality.overallScore.toFixed(1)}%</div>
+            {(quality.overallScore || 0) < 80 && (
+              <div>• Quality score below acceptable level: {(quality.overallScore || 0).toFixed(1)}%</div>
             )}
             {daysUntilBankruptcy < 7 && daysUntilBankruptcy !== Infinity && (
               <div>• Bankruptcy risk in {Math.ceil(daysUntilBankruptcy)} days at current rate</div>
@@ -173,11 +181,11 @@ const GameStats = ({ gameState }) => {
       </div>
 
       {/* Active Challenges */}
-      {gameProgress.challenges && gameProgress.challenges.filter(c => c.active).length > 0 && (
+      {gameProgress.challenges && gameProgress.challenges.filter(c => c && c.active).length > 0 && (
         <div className="mt-6">
           <h4 className="font-medium text-gray-800 mb-3">Active Challenges</h4>
           <div className="space-y-3">
-            {gameProgress.challenges.filter(c => c.active).map((challenge, index) => (
+            {gameProgress.challenges.filter(c => c && c.active).map((challenge, index) => (
               <div key={index} className="bg-blue-50 border border-blue-200 rounded-lg p-3">
                 <div className="flex justify-between items-start mb-2">
                   <div className="font-medium text-blue-800">{challenge.title}</div>

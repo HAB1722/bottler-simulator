@@ -1,15 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { X, CheckCircle, AlertTriangle, Info, TrendingUp } from 'lucide-react';
 
-const NotificationSystem = ({ gameState }) => {
+const NotificationSystem = ({ gameState, lastNotifications = {}, setLastNotifications }) => {
   const [notifications, setNotifications] = useState([]);
 
   useEffect(() => {
+    if (!gameState || !gameState.production || !gameState.finance) return;
+    
     const newNotifications = [];
+    const now = Date.now();
+    const NOTIFICATION_COOLDOWN = 5 * 60 * 1000; // 5 minutes between same notifications
 
     // Check for achievements and milestones
-    if (gameState.production.totalBottlesProduced >= 1000000 && 
-        !notifications.find(n => n.id === 'million_bottles')) {
+    if ((gameState.production.totalBottlesProduced || 0) >= 1000000 && 
+        !notifications.find(n => n.id === 'million_bottles') &&
+        (!lastNotifications['million_bottles'] || now - lastNotifications['million_bottles'] > NOTIFICATION_COOLDOWN)) {
       newNotifications.push({
         id: 'million_bottles',
         type: 'achievement',
@@ -21,13 +26,18 @@ const NotificationSystem = ({ gameState }) => {
     }
 
     // Check for low resources
-    Object.entries(gameState.resources).forEach(([key, resource]) => {
-      if (key !== 'totalValue' && resource.daysLeft < 3) {
+    Object.entries(gameState.resources || {}).forEach(([key, resource]) => {
+      if (key !== 'totalValue' && resource && (resource.daysLeft || 0) < 1 &&
+          (!lastNotifications[`low_${key}`] || now - lastNotifications[`low_${key}`] > NOTIFICATION_COOLDOWN)) {
         newNotifications.push({
           id: `low_${key}`,
           type: 'warning',
           title: 'Low Stock Warning',
-          message: `${resource.name} running low (${resource.daysLeft} days left)`,
+          message: `${resource.name} running low (${
+            resource.daysLeft < 1 ? 
+            `${Math.round(resource.daysLeft * 24)}h left` : 
+            `${Math.round(resource.daysLeft)} days left`
+          })`,
           icon: AlertTriangle,
           color: 'yellow'
         });
@@ -35,27 +45,42 @@ const NotificationSystem = ({ gameState }) => {
     });
 
     // Check for quality issues
-    if (gameState.quality.overallScore < 90) {
+    if ((gameState.quality?.overallScore || 0) < 80 &&
+        (!lastNotifications['quality_warning'] || now - lastNotifications['quality_warning'] > NOTIFICATION_COOLDOWN)) {
       newNotifications.push({
         id: 'quality_warning',
         type: 'warning',
         title: 'Quality Alert',
-        message: `Quality score dropped to ${gameState.quality.overallScore}%`,
+        message: `Quality score at ${Math.round(gameState.quality?.overallScore || 0)}%`,
         icon: AlertTriangle,
         color: 'red'
       });
     }
 
     // Check for profit milestones
-    if (gameState.finance.netProfit > 50000 && 
-        !notifications.find(n => n.id === 'profit_milestone')) {
+    if ((gameState.finance?.netProfit || 0) > 10000 && 
+        !notifications.find(n => n.id === 'profit_milestone') &&
+        (!lastNotifications['profit_milestone'] || now - lastNotifications['profit_milestone'] > NOTIFICATION_COOLDOWN)) {
       newNotifications.push({
         id: 'profit_milestone',
         type: 'success',
         title: 'Profit Milestone!',
-        message: 'Daily profit exceeded $50,000!',
+        message: 'Daily profit exceeded $10,000!',
         icon: TrendingUp,
         color: 'green'
+      });
+    }
+
+    // Check for cash crisis
+    if ((gameState.finance?.cash || 0) < 10000 &&
+        (!lastNotifications['cash_crisis'] || now - lastNotifications['cash_crisis'] > NOTIFICATION_COOLDOWN)) {
+      newNotifications.push({
+        id: 'cash_crisis',
+        type: 'warning',
+        title: 'Cash Crisis!',
+        message: `Only $${Math.round(gameState.finance?.cash || 0).toLocaleString()} remaining`,
+        icon: AlertTriangle,
+        color: 'red'
       });
     }
 
@@ -63,6 +88,14 @@ const NotificationSystem = ({ gameState }) => {
     newNotifications.forEach(notification => {
       if (!notifications.find(n => n.id === notification.id)) {
         setNotifications(prev => [...prev, { ...notification, timestamp: Date.now() }]);
+        
+        // Update last notification time
+        if (setLastNotifications) {
+          setLastNotifications(prev => ({
+            ...prev,
+            [notification.id]: now
+          }));
+        }
       }
     });
 
@@ -72,7 +105,7 @@ const NotificationSystem = ({ gameState }) => {
     }, 1000);
 
     return () => clearTimeout(timer);
-  }, [gameState, notifications]);
+  }, [gameState, notifications, lastNotifications, setLastNotifications]);
 
   const removeNotification = (id) => {
     setNotifications(prev => prev.filter(n => n.id !== id));
