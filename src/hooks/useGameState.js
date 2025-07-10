@@ -43,6 +43,7 @@ const initialGameState = {
   
   // Limited starting resources - forces immediate decisions
   resources: {
+    totalValue: 25000,
     water: {
       name: 'Municipal Water',
       current: 15000, // Only 1.25 days supply
@@ -102,8 +103,7 @@ const initialGameState = {
       daysLeft: 4,
       supplier: 'Filter Tech Inc.',
       quality: 'Basic'
-    },
-    totalValue: 25000
+    }
   },
 
   // Small market presence - room to grow
@@ -325,6 +325,254 @@ const initialGameState = {
       efficiencyBoost: 0,
       qualityBoost: 0,
       costReduction: 0
+    }
+  },
+
+  // Add missing data structures for new features
+  profitLoss: {
+    revenue: {
+      productSales: 16000,
+      premiumSales: 2000,
+      contractSales: 0,
+      total: 18000
+    },
+    expenses: {
+      rawMaterials: 8500,
+      labor: 3200,
+      utilities: 2100,
+      maintenance: 1400,
+      loanPayments: 1000,
+      research: 0,
+      insurance: 500,
+      rent: 1500,
+      total: 18200
+    },
+    grossProfit: 9500,
+    netProfit: -200,
+    margins: {
+      gross: 52.8,
+      net: -1.1
+    }
+  },
+
+  loans: {
+    totalDebt: 85000,
+    monthlyPayments: 3500,
+    creditScore: 650,
+    active: [
+      {
+        name: 'Equipment Loan',
+        remainingBalance: 45000,
+        monthlyPayment: 2000,
+        interestRate: 8.5,
+        remainingMonths: 24,
+        termMonths: 36
+      },
+      {
+        name: 'Working Capital Line',
+        remainingBalance: 40000,
+        monthlyPayment: 1500,
+        interestRate: 12.0,
+        remainingMonths: 30,
+        termMonths: 36
+      }
+    ],
+    available: [
+      {
+        id: 'expansion',
+        name: 'Expansion Loan',
+        description: 'Fund factory expansion and new equipment',
+        maxAmount: 150000,
+        interestRate: 9.5,
+        termMonths: 60,
+        requirements: 'Credit score 600+, 6 months operating history'
+      },
+      {
+        id: 'equipment',
+        name: 'Equipment Financing',
+        description: 'Purchase new production equipment',
+        maxAmount: 75000,
+        interestRate: 7.5,
+        termMonths: 48,
+        requirements: 'Equipment as collateral'
+      },
+      {
+        id: 'emergency',
+        name: 'Emergency Credit Line',
+        description: 'Short-term working capital',
+        maxAmount: 25000,
+        interestRate: 15.0,
+        termMonths: 12,
+        requirements: 'Active business license'
+      }
+    ]
+  },
+
+  research: {
+    monthlyBudget: 2000,
+    currentProjects: [],
+    completed: [],
+    availableProjects: [
+      {
+        id: 'water-filtration',
+        name: 'Advanced Water Filtration',
+        category: 'quality',
+        description: 'Develop superior water purification technology',
+        cost: 15000,
+        dailyCost: 500,
+        duration: 30,
+        benefits: ['+10% water purity', '+5% overall quality', 'Reduced contamination risk'],
+        unlocks: ['Premium Water Certification'],
+        requirements: null
+      },
+      {
+        id: 'automation-basic',
+        name: 'Basic Automation',
+        category: 'efficiency',
+        description: 'Implement basic automated bottling systems',
+        cost: 25000,
+        dailyCost: 800,
+        duration: 45,
+        benefits: ['+20% production speed', '+15% efficiency', 'Reduced labor costs'],
+        unlocks: ['Semi-Automated Production Line'],
+        requirements: null
+      },
+      {
+        id: 'eco-packaging',
+        name: 'Eco-Friendly Packaging',
+        category: 'sustainability',
+        description: 'Research biodegradable bottle materials',
+        cost: 12000,
+        dailyCost: 400,
+        duration: 25,
+        benefits: ['+15% market appeal', 'Environmental certification', 'Premium pricing'],
+        unlocks: ['Green Product Line'],
+        requirements: null
+      },
+      {
+        id: 'brand-development',
+        name: 'Brand Development',
+        category: 'marketing',
+        description: 'Develop stronger brand identity and marketing',
+        cost: 8000,
+        dailyCost: 300,
+        duration: 20,
+        benefits: ['+10% market share growth', '+5% price premium', 'Customer loyalty'],
+        unlocks: ['Premium Branding'],
+        requirements: null
+      }
+    ],
+    technologies: {
+      benefits: {
+        qualityBonus: 0,
+        efficiencyBonus: 0,
+        costReduction: 0,
+        marketingBonus: 0
+      }
+    }
+  },
+
+  employees: {
+    total: 12,
+    totalWageCost: 28800, // Monthly
+    satisfaction: 68,
+    turnoverRate: 15,
+    departments: {
+      production: {
+        workers: 8,
+        averageWage: 18,
+        skillLevel: 2.8,
+        efficiency: 72,
+        morale: 65,
+        positions: [
+          { name: 'Line Operator', count: 6, wage: 16 },
+          { name: 'Quality Inspector', count: 1, wage: 22 },
+          { name: 'Maintenance Tech', count: 1, wage: 24 }
+        ]
+      },
+      management: {
+        workers: 2,
+        averageWage: 35,
+        skillLevel: 3.5,
+        efficiency: 80,
+        morale: 75,
+        positions: [
+          { name: 'Production Manager', count: 1, wage: 40 },
+          { name: 'Shift Supervisor', count: 1, wage: 30 }
+        ]
+      },
+      support: {
+        workers: 2,
+        averageWage: 20,
+        skillLevel: 3.0,
+        efficiency: 70,
+        morale: 70,
+        positions: [
+          { name: 'Administrative Assistant', count: 1, wage: 18 },
+          { name: 'Security Guard', count: 1, wage: 22 }
+        ]
+      }
+    },
+    hiring: {
+      available: [
+        {
+          name: 'Maria Rodriguez',
+          department: 'production',
+          position: 'Line Operator',
+          wage: 17,
+          skill: 3,
+          hiringCost: 500,
+          benefits: '+5% line efficiency when hired'
+        },
+        {
+          name: 'Ahmed Hassan',
+          department: 'production',
+          position: 'Quality Inspector',
+          wage: 24,
+          skill: 4,
+          hiringCost: 800,
+          benefits: '+3% quality score improvement'
+        },
+        {
+          name: 'Jennifer Chen',
+          department: 'management',
+          position: 'Operations Manager',
+          wage: 45,
+          skill: 4,
+          hiringCost: 2000,
+          benefits: '+10% overall efficiency'
+        }
+      ]
+    },
+    training: {
+      programs: [
+        {
+          name: 'Safety Training',
+          cost: 1500,
+          duration: 3,
+          requirement: 'All production workers',
+          benefits: '+5% morale, -20% accident risk'
+        },
+        {
+          name: 'Quality Control Certification',
+          cost: 3000,
+          duration: 7,
+          requirement: 'Quality inspectors',
+          benefits: '+8% quality score, +10% efficiency'
+        },
+        {
+          name: 'Leadership Development',
+          cost: 5000,
+          duration: 14,
+          requirement: 'Management staff',
+          benefits: '+15% team efficiency, +10% morale'
+        }
+      ]
+    },
+    benefits: {
+      healthInsurance: false,
+      paidTimeOff: false,
+      performanceBonus: false
     }
   },
 

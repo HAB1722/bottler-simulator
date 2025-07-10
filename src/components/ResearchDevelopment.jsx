@@ -2,6 +2,15 @@ import React from 'react';
 import { Beaker, Lightbulb, TrendingUp, Clock, DollarSign, CheckCircle } from 'lucide-react';
 
 const ResearchDevelopment = ({ gameState, updateGameState }) => {
+  // Add safety checks
+  if (!gameState || !gameState.research || !gameState.finance) {
+    return (
+      <div className="bg-white rounded-lg shadow-sm p-6">
+        <div className="text-center text-gray-500">Loading research data...</div>
+      </div>
+    );
+  }
+
   const { research, finance } = gameState;
 
   const startResearchProject = (projectId) => {

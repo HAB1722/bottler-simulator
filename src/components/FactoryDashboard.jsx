@@ -29,6 +29,15 @@ const FactoryDashboard = () => {
   ];
 
   const renderTabContent = () => {
+    // Add safety check for gameState
+    if (!gameState) {
+      return (
+        <div className="bg-white rounded-lg shadow-sm p-6">
+          <div className="text-center text-gray-500">Loading...</div>
+        </div>
+      );
+    }
+
     switch (activeTab) {
       case 'production':
         return <ProductionLines gameState={gameState} updateGameState={updateGameState} />;
@@ -51,6 +60,16 @@ const FactoryDashboard = () => {
     }
   };
 
+  // Add safety check for gameState before rendering
+  if (!gameState || !gameState.finance || !gameState.production || !gameState.quality || !gameState.market) {
+    return (
+      <div className="max-w-7xl mx-auto">
+        <div className="bg-white rounded-lg shadow-sm p-6">
+          <div className="text-center text-gray-500">Loading factory data...</div>
+        </div>
+      </div>
+    );
+  }
   return (
     <div className="max-w-7xl mx-auto">
       {/* Notification System */}

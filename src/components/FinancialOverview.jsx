@@ -3,7 +3,79 @@ import { DollarSign, TrendingUp, TrendingDown, PieChart, FileText, CreditCard } 
 import { safeToLocaleString, safeCurrency } from '../utils/safeFormatting';
 
 const FinancialOverview = ({ gameState, updateGameState }) => {
-  const { finance, profitLoss, loans } = gameState;
+  // Add safety checks for all required data
+  if (!gameState || !gameState.finance) {
+    return (
+      <div className="bg-white rounded-lg shadow-sm p-6">
+        <div className="text-center text-gray-500">Loading financial data...</div>
+      </div>
+    );
+  }
+
+  const { finance, profitLoss = {}, loans = {} } = gameState;
+
+  // Provide default values for missing data
+  const safeFinance = {
+    cash: 0,
+    dailyRevenue: 0,
+    dailyExpenses: 0,
+    netProfit: 0,
+    cashChange: 0,
+    revenueChange: 0,
+    expenseChange: 0,
+    profitChange: 0,
+    revenueBreakdown: [],
+    expenseBreakdown: [],
+    cashFlowProjection: [],
+    ratios: {
+      grossMargin: 0,
+      netMargin: 0,
+      roi: 0,
+      costPerUnit: 0,
+      revenuePerUnit: 0,
+      breakEven: 0,
+      revenueGrowth: 0,
+      profitGrowth: 0,
+      marketGrowth: 0
+    },
+    ...finance
+  };
+
+  const safeProfitLoss = {
+    revenue: {
+      productSales: 0,
+      premiumSales: 0,
+      contractSales: 0,
+      total: 0
+    },
+    expenses: {
+      rawMaterials: 0,
+      labor: 0,
+      utilities: 0,
+      maintenance: 0,
+      loanPayments: 0,
+      research: 0,
+      insurance: 0,
+      rent: 0,
+      total: 0
+    },
+    grossProfit: 0,
+    netProfit: 0,
+    margins: {
+      gross: 0,
+      net: 0
+    },
+    ...profitLoss
+  };
+
+  const safeLoans = {
+    totalDebt: 0,
+    monthlyPayments: 0,
+    creditScore: 650,
+    active: [],
+    available: [],
+    ...loans
+  };
 
   const applyForLoan = (loanId, amount) => {
     // Implementation for loan application

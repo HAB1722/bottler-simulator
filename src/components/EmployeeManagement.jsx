@@ -2,6 +2,15 @@ import React from 'react';
 import { Users, TrendingUp, DollarSign, Award, UserPlus, BookOpen } from 'lucide-react';
 
 const EmployeeManagement = ({ gameState, updateGameState }) => {
+  // Add safety checks
+  if (!gameState || !gameState.employees || !gameState.finance) {
+    return (
+      <div className="bg-white rounded-lg shadow-sm p-6">
+        <div className="text-center text-gray-500">Loading employee data...</div>
+      </div>
+    );
+  }
+
   const { employees, finance } = gameState;
 
   const hireEmployee = (candidateIndex) => {
